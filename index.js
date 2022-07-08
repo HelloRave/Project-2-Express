@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const ObjectId = require('mongodb').ObjectId;
 const MongoUtil = require('./MongoUtil');
+const {checkEmptyFields} = require('./Middleware')
 const cors = require('cors'); 
 require('dotenv').config()
 
@@ -22,13 +23,13 @@ async function main(){
     })
 
     // Route to add new manga to the list - how to link with the other 3 collections? 
-    app.post('/add_new_manga', async function(req, res){
+    app.post('/add_new_manga', checkEmptyFields, async function(req, res){
 
         let author_id = ObjectId()
 
-        if (req.query.author_id){
-            author_id = ObjectId(req.query.author_id)
-        }
+        if (req.body.author_id){
+            author_id = ObjectId(req.body.author_id)
+        } 
 
         let review_id = ObjectId()
 
@@ -37,18 +38,18 @@ async function main(){
             id_: author_id,
             name: req.body.author_name
         };
+        let description = req.body.description;
         let genre = req.body.genre;
         let chapters = req.body.chapters;
         let ongoing = req.body.ongoing;
         let published = req.body.published;
         let serialization = req.body.serialization;
         let volumes = req.body.volumes;
-        let popularity = req.body.popularity;
         let anime_adaptation = req.body.anime_adaptation;
         let reviews = [review_id]
 
         let newManga = await db.collection('manga_records').insertOne({
-            title, author, genre, chapters, ongoing, published, serialization, volumes, popularity, anime_adaptation, reviews
+            title, author, description, genre, chapters, ongoing, published, serialization, volumes, anime_adaptation, reviews
         })
 
         let mangaId = await db.collection('manga_records').findOne({
@@ -77,6 +78,20 @@ async function main(){
 
         res.status(201);
         res.json(newManga) // can post to database but the error? 
+    })
+
+    app.get('/find_author/:name', async function(req, res){
+        let results = await db.collection('manga_authors').find({
+            author_name: {
+                $regex: req.params.name,
+                $options: 'i'
+                    }
+        }).project({
+            _id: 1
+        }).toArray()
+
+        res.status(200);
+        res.send(results)
     })
 
     app.get('/find_manga', async function(req, res){
