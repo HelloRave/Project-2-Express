@@ -151,7 +151,41 @@ async function main(){
         res.send(results)
     })
 
-    
+    app.patch('/update_manga/:id', async function(req, res){
+        let title = req.body.title;
+
+        let author_id = await db.collection('manga_authors').findOne({
+            author_name: {
+                $regex: req.body.name,
+                $options: 'i'
+                    }
+        }).project({
+            _id: 1
+        })
+
+        let author = {
+            id_: author_id._id ? ObjectId(author_id._id) : ObjectId(),
+            name: req.body.author_name
+        }; 
+        let description = req.body.description;
+        let genre = req.body.genre;
+        let chapters = req.body.chapters;
+        let ongoing = req.body.ongoing;
+        let published = req.body.published;
+        let serialization = req.body.serialization;
+        let volumes = req.body.volumes;
+        let anime_adaptation = req.body.anime_adaptation;
+
+        let results = await db.collection('manga_records').updateOne({
+            _id: ObjectId(req.params.id)
+        }, {
+            '$set': {
+                title, author, description, genre, chapters, ongoing, published, serialization, volumes, anime_adaptation
+            }
+        })
+
+        res.sendStatus(200)
+    })
 }
 
 main()
