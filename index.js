@@ -29,14 +29,19 @@ async function main(){
 
         if (req.body.author_id){
             author_id = ObjectId(req.body.author_id)
-        } 
+        } else {
+            await db.collection('manga_authors').insertOne({
+                _id: author_id,
+                author_name: req.body.author_name
+            })
+        }
 
         let review_id = ObjectId()
 
         let url = req.body.url; 
         let title = req.body.title;
         let author = {
-            id_: author_id,
+            _id: author_id,
             name: req.body.author_name
         };
         let description = req.body.description;
@@ -167,7 +172,7 @@ async function main(){
         })
 
         let author = {
-            id_: author_id._id ? ObjectId(author_id._id) : ObjectId(), //cannot read properties of null if no author exist
+            id_: (author_id && author_id._id) ? ObjectId(author_id._id) : ObjectId(), 
             name: req.body.author_name
         }; 
         let description = req.body.description;
