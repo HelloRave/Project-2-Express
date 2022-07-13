@@ -33,6 +33,7 @@ async function main(){
 
         let review_id = ObjectId()
 
+        let url = req.body.url; 
         let title = req.body.title;
         let author = {
             id_: author_id,
@@ -49,7 +50,7 @@ async function main(){
         let reviews = [review_id]
 
         let newManga = await db.collection('manga_records').insertOne({
-            title, author, description, genre, chapters, ongoing, published, serialization, volumes, anime_adaptation, reviews
+            url, title, author, description, genre, chapters, ongoing, published, serialization, volumes, anime_adaptation, reviews
         })
 
         let mangaId = await db.collection('manga_records').findOne({
@@ -156,15 +157,17 @@ async function main(){
 
         let author_id = await db.collection('manga_authors').findOne({
             author_name: {
-                $regex: req.body.name,
+                $regex: req.body.author_name,
                 $options: 'i'
                     }
-        }).project({
-            _id: 1
+        }, {
+            'projection': {
+                '_id': 1
+            }
         })
 
         let author = {
-            id_: author_id._id ? ObjectId(author_id._id) : ObjectId(),
+            id_: author_id._id ? ObjectId(author_id._id) : ObjectId(), //cannot read properties of null if no author exist
             name: req.body.author_name
         }; 
         let description = req.body.description;
