@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const ObjectId = require('mongodb').ObjectId;
 const MongoUtil = require('./MongoUtil');
-const {checkEmptyFields} = require('./Middleware')
+const {checkEmptyFields, checkEmptyReviews} = require('./Middleware')
 const cors = require('cors'); 
 require('dotenv').config()
 
@@ -23,7 +23,7 @@ async function main(){
     })
 
     // Route to add new manga to the list - how to link with the other 3 collections? 
-    app.post('/add_new_manga', checkEmptyFields, async function(req, res){
+    app.post('/add_new_manga', [checkEmptyFields, checkEmptyReviews], async function(req, res){
 
         let author_id = ObjectId()
 
@@ -157,7 +157,9 @@ async function main(){
         res.send(results)
     })
 
-    app.patch('/update_manga/:id', async function(req, res){
+    app.patch('/update_manga/:id', checkEmptyFields, async function(req, res){
+
+        let url = req.body.url
         let title = req.body.title;
 
         let author_id = await db.collection('manga_authors').findOne({
@@ -188,7 +190,7 @@ async function main(){
             _id: ObjectId(req.params.id)
         }, {
             '$set': {
-                title, author, description, genre, chapters, ongoing, published, serialization, volumes, anime_adaptation
+                url, title, author, description, genre, chapters, ongoing, published, serialization, volumes, anime_adaptation
             }
         })
 
