@@ -111,7 +111,7 @@ async function main(){
                 }
 
         if (req.query.title){
-            criteria['author.name'] = {
+            criteria['title'] = {
                 $regex: req.query.title,
                 $options: 'i'
                     }
@@ -146,9 +146,11 @@ async function main(){
         // }
 
         if (req.query.genre){
-            criteria['genre'] = {
-                $in: req.query.genre.split(' ')
-            }
+            criteria['$and'] = req.query.genre.map((genre) => {
+                return {'genre': {
+                    '$in': [genre]
+                }}
+            })
         }
 
         let results = await db.collection('manga_records').find(criteria).toArray()
