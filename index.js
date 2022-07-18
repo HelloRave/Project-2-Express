@@ -22,7 +22,6 @@ async function main() {
         res.json(mangaRecords)
     })
 
-    // Route to add new manga to the list - how to link with the other 3 collections? 
     app.post('/add_new_manga', [checkEmptyFields, checkEmptyReviews], async function (req, res) {
 
         let author_id = ObjectId()
@@ -100,9 +99,9 @@ async function main() {
         res.send(results)
     })
 
-    app.get('/find_review/:review_id', async function (req, res) {
+    app.get('/find_review/:manga_id', async function (req, res) {
         let reviewResults = await db.collection('manga_reviews').find({
-            _id: req.params.review_id
+            'manga._id': ObjectId(req.params.manga_id)
         }).toArray()
 
         res.json(reviewResults)
@@ -130,8 +129,6 @@ async function main() {
                 'reviews': addReview.insertedId
             }
         })
-
-        console.log(addReview.insertedId, reviewToManga)
 
         res.sendStatus(200)
     })
