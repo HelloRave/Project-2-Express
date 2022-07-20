@@ -82,7 +82,6 @@ async function main() {
         })
 
         res.status(201);
-        res.json(newManga) // can post to database but the error? 
     })
 
     app.get('/find_author/:name', async function (req, res) {
@@ -104,6 +103,20 @@ async function main() {
             'manga._id': ObjectId(req.params.manga_id)
         }).toArray()
 
+        let allCurrentReviews = await db.collection('manga_reviews').find({
+            'manga._id': ObjectId(req.params.manga_id)
+        }).project({
+            rating: 1
+        }).toArray()
+
+        let ratingOnlyArray = allCurrentReviews.map((obj) => { return obj.rating})
+
+        ratingOnlyArray.push(1)
+
+        let averageRating = ratingOnlyArray.reduce((total, current) => {return total + current}, 0) / ratingOnlyArray.length
+
+        console.log(allCurrentReviews, ratingOnlyArray, averageRating)
+
         res.json(reviewResults)
     })
 
@@ -121,10 +134,26 @@ async function main() {
             manga, plot, main_characters, supporting_characters, rating
         })
 
-        // Insert this id into manga_records but doesnt work
+        
+        let allCurrentReviews = await db.collection('manga_reviews').find({
+            'manga._id': ObjectId(req.params.manga_id)
+        }).project({
+            rating: 1
+        }).toArray()
+
+        let ratingOnlyArray = allCurrentReviews.map((obj) => { return obj.rating})
+
+        ratingOnlyArray.push(rating)
+
+        let averageRating = ratingOnlyArray.reduce((total, current) => {return total + current}, 0) / ratingOnlyArray.length
+
+
         let reviewToManga = await db.collection('manga_records').updateOne({
             _id: ObjectId(req.params.manga_id)
         }, {
+            '$set': {
+                'average_rating': averageRating
+            },
             '$push': {
                 'reviews': addReview.insertedId
             }
