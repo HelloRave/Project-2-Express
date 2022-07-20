@@ -53,7 +53,7 @@ async function main() {
         let anime_adaptation = req.body.anime_adaptation;
         let reviews = [review_id]
 
-        let newManga = await db.collection('manga_records').insertOne({
+        await db.collection('manga_records').insertOne({
             url, title, author, description, genre, chapters, ongoing, published, serialization, volumes, anime_adaptation, reviews
         })
 
@@ -77,7 +77,7 @@ async function main() {
         let supporting_characters = req.body.supporting_characters;
         let rating = req.body.rating
 
-        let newReview = await db.collection('manga_reviews').insertOne({
+        await db.collection('manga_reviews').insertOne({
             manga, plot, main_characters, supporting_characters, rating
         })
 
@@ -102,20 +102,6 @@ async function main() {
         let reviewResults = await db.collection('manga_reviews').find({
             'manga._id': ObjectId(req.params.manga_id)
         }).toArray()
-
-        let allCurrentReviews = await db.collection('manga_reviews').find({
-            'manga._id': ObjectId(req.params.manga_id)
-        }).project({
-            rating: 1
-        }).toArray()
-
-        let ratingOnlyArray = allCurrentReviews.map((obj) => { return obj.rating})
-
-        ratingOnlyArray.push(1)
-
-        let averageRating = ratingOnlyArray.reduce((total, current) => {return total + current}, 0) / ratingOnlyArray.length
-
-        console.log(allCurrentReviews, ratingOnlyArray, averageRating)
 
         res.json(reviewResults)
     })
@@ -143,12 +129,9 @@ async function main() {
 
         let ratingOnlyArray = allCurrentReviews.map((obj) => { return obj.rating})
 
-        ratingOnlyArray.push(rating)
-
         let averageRating = ratingOnlyArray.reduce((total, current) => {return total + current}, 0) / ratingOnlyArray.length
 
-
-        let reviewToManga = await db.collection('manga_records').updateOne({
+        await db.collection('manga_records').updateOne({
             _id: ObjectId(req.params.manga_id)
         }, {
             '$set': {
@@ -199,13 +182,11 @@ async function main() {
             }
         }
 
-        // IN ANOTHER COLLECTION
-        //  if (req.query.max_rating && req.query.min_rating){
-        //     criteria['rating'] = {
-        //         $lte: Number(req.query.max_rating),
-        //         $gte: Number(req.query.min_rating)
-        //     }
-        // }
+         if (req.query.min_rating){
+            criteria['average_rating'] = {
+                $gte: Number(req.query.min_rating)
+            }
+        }
 
         if (req.query.genre) {
             criteria['$and'] = req.query.genre.map((genre) => {
@@ -252,7 +233,7 @@ async function main() {
         let volumes = req.body.volumes;
         let anime_adaptation = req.body.anime_adaptation;
 
-        let results = await db.collection('manga_records').updateOne({
+        await db.collection('manga_records').updateOne({
             _id: ObjectId(req.params.id)
         }, {
             '$set': {
