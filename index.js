@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const ObjectId = require('mongodb').ObjectId;
 const MongoUtil = require('./MongoUtil');
-const { checkEmptyFields, checkEmptyReviews } = require('./Middleware')
+const { checkEmptyFields, checkEmptyReviews, checkTypeMain, checkTypeReview } = require('./Middleware')
 const cors = require('cors');
 require('dotenv').config()
 
@@ -22,7 +22,7 @@ async function main() {
         res.json(mangaRecords)
     })
 
-    app.post('/add_new_manga', [checkEmptyFields, checkEmptyReviews], async function (req, res) {
+    app.post('/add_new_manga', [checkEmptyFields, checkEmptyReviews, checkTypeMain, checkTypeReview], async function (req, res) {
 
         let author_id = ObjectId()
 
@@ -75,7 +75,7 @@ async function main() {
         let plot = req.body.plot;
         let main_characters = req.body.main_characters;
         let supporting_characters = req.body.supporting_characters;
-        let rating = req.body.rating
+        let rating = Number(req.body.rating)
 
         await db.collection('manga_reviews').insertOne({
             manga, plot, main_characters, supporting_characters, rating
@@ -106,7 +106,7 @@ async function main() {
         res.json(reviewResults)
     })
 
-    app.post('/add_review/:manga_id', async function (req, res) {
+    app.post('/add_review/:manga_id', [checkEmptyReviews, checkTypeReview], async function (req, res) {
         let manga = {
             _id: ObjectId(req.params.manga_id),
             name: req.body.title
@@ -114,7 +114,7 @@ async function main() {
         let plot = req.body.plot;
         let main_characters = req.body.main_characters;
         let supporting_characters = req.body.supporting_characters;
-        let rating = req.body.rating
+        let rating = Number(req.body.rating)
 
         let addReview = await db.collection('manga_reviews').insertOne({
             manga, plot, main_characters, supporting_characters, rating
@@ -204,7 +204,7 @@ async function main() {
         res.send(results)
     })
 
-    app.patch('/update_manga/:id', checkEmptyFields, async function (req, res) {
+    app.patch('/update_manga/:id', [checkEmptyFields, checkTypeMain], async function (req, res) {
 
         let url = req.body.url
         let title = req.body.title;
@@ -221,7 +221,7 @@ async function main() {
         })
 
         let author = {
-            id_: (author_id && author_id._id) ? ObjectId(author_id._id) : ObjectId(),
+            _id: (author_id && author_id._id) ? ObjectId(author_id._id) : ObjectId(),
             name: req.body.author_name
         };
         let description = req.body.description;
@@ -239,6 +239,14 @@ async function main() {
             '$set': {
                 url, title, author, description, genre, chapters, ongoing, published, serialization, volumes, anime_adaptation
             }
+        })
+
+        res.sendStatus(200)
+    })
+
+    app.delete('/delete_manga/:manga_id', async function (req, res){
+        await db.collection('manga_records').deleteOne({
+            _id: ObjectId(req.params.manga_id)
         })
 
         res.sendStatus(200)
