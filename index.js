@@ -249,7 +249,7 @@ main()
 
 // End of routes
 
-app.listen(8888, () => {
+app.listen(process.env.PORT, () => {
     console.log('Server started')
 })
 
