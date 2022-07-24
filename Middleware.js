@@ -31,14 +31,14 @@ let checkEmptyReviews = (req,res,next) => {
 }
 
 let checkTypeMain = (req, res, next) => {
-    if (urlRegex.test(req.body.url) ||
+    if (!urlRegex.test(req.body.url) ||
         typeof req.body.title !== 'string' ||
         typeof req.body.author_name !== 'string' ||
         typeof req.body.description !== 'string' ||
         !Array.isArray(req.body.genre) ||
-        /^[1-9]\d*$/.test(req.body.chapters) ||
-        /^[1-9]\d*$/.test(req.body.volumes) ||
-        dateRegex.test(req.body.published) ||
+        !/^[1-9]\d*$/.test(req.body.chapters) ||
+        !/^[1-9]\d*$/.test(req.body.volumes) ||
+        !dateRegex.test(req.body.published) ||
         typeof req.body.serialization !== 'string'){
         res.sendStatus(400)
         console.log('Wrong data type')
