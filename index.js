@@ -51,10 +51,11 @@ async function main() {
         let serialization = req.body.serialization;
         let volumes = req.body.volumes;
         let anime_adaptation = req.body.anime_adaptation;
-        let reviews = [review_id]
+        let reviews = [review_id];
+        let average_rating = req.body.rating
 
-        await db.collection('manga_records').insertOne({
-            url, title, author, description, genre, chapters, ongoing, published, serialization, volumes, anime_adaptation, reviews
+        let response = await db.collection('manga_records').insertOne({
+            url, title, author, description, genre, chapters, ongoing, published, serialization, volumes, anime_adaptation, reviews, average_rating
         })
 
         let mangaId = await db.collection('manga_records').findOne({
@@ -78,10 +79,12 @@ async function main() {
         let rating = Number(req.body.rating)
 
         await db.collection('manga_reviews').insertOne({
+            _id: review_id, 
             manga, plot, main_characters, supporting_characters, rating
         })
 
         res.status(201);
+        res.send(response)
     })
 
     app.get('/find_author/:name', async function (req, res) {
