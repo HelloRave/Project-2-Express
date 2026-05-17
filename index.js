@@ -24,10 +24,10 @@ async function main() {
 
     app.post('/add_new_manga', [checkEmptyFields, checkEmptyReviews, checkTypeMain, checkTypeReview], async function (req, res) {
 
-        let author_id = ObjectId()
+        let author_id = new ObjectId()
 
         if (req.body.author_id) {
-            author_id = ObjectId(req.body.author_id)
+            author_id = new ObjectId(req.body.author_id)
         } else {
             await db.collection('manga_authors').insertOne({
                 _id: author_id,
@@ -35,7 +35,7 @@ async function main() {
             })
         }
 
-        let review_id = ObjectId()
+        let review_id = new ObjectId()
 
         let url = req.body.url;
         let title = req.body.title;
@@ -103,7 +103,7 @@ async function main() {
 
     app.get('/find_review/:manga_id', async function (req, res) {
         let reviewResults = await db.collection('manga_reviews').find({
-            'manga._id': ObjectId(req.params.manga_id)
+            'manga._id': new ObjectId(req.params.manga_id)
         }).toArray()
 
         res.json(reviewResults)
@@ -111,7 +111,7 @@ async function main() {
 
     app.post('/add_review/:manga_id', [checkEmptyReviews, checkTypeReview], async function (req, res) {
         let manga = {
-            _id: ObjectId(req.params.manga_id),
+            _id: new ObjectId(req.params.manga_id),
             name: req.body.title
         }
         let plot = req.body.plot;
@@ -125,7 +125,7 @@ async function main() {
 
         
         let allCurrentReviews = await db.collection('manga_reviews').find({
-            'manga._id': ObjectId(req.params.manga_id)
+            'manga._id': new ObjectId(req.params.manga_id)
         }).project({
             rating: 1
         }).toArray()
@@ -135,7 +135,7 @@ async function main() {
         let averageRating = ratingOnlyArray.reduce((total, current) => {return total + current}, 0) / ratingOnlyArray.length
 
         await db.collection('manga_records').updateOne({
-            _id: ObjectId(req.params.manga_id)
+            _id: new ObjectId(req.params.manga_id)
         }, {
             '$set': {
                 'average_rating': averageRating
@@ -224,7 +224,7 @@ async function main() {
         })
 
         let author = {
-            _id: (author_id && author_id._id) ? ObjectId(author_id._id) : ObjectId(),
+            _id: (author_id && author_id._id) ? new ObjectId(author_id._id) : new ObjectId(),
             name: req.body.author_name
         };
         let description = req.body.description;
@@ -237,7 +237,7 @@ async function main() {
         let anime_adaptation = req.body.anime_adaptation;
 
         await db.collection('manga_records').updateOne({
-            _id: ObjectId(req.params.id)
+            _id: new ObjectId(req.params.id)
         }, {
             '$set': {
                 url, title, author, description, genre, chapters, ongoing, published, serialization, volumes, anime_adaptation
@@ -249,7 +249,7 @@ async function main() {
 
     app.delete('/delete_manga/:manga_id', async function (req, res){
         await db.collection('manga_records').deleteOne({
-            _id: ObjectId(req.params.manga_id)
+            _id: new ObjectId(req.params.manga_id)
         })
 
         res.sendStatus(200)
